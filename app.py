@@ -27,13 +27,17 @@ with app.app_context():
 
 
 @app.route('/create_user', methods=["POST"])
-def create_user(userInfo):
+def create_user():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
     new_user = User.createUser(
-        username=userInfo.username,
-        password=userInfo.password)
+        username = username,
+        password = password)
+   
     db.session.commit()
     if new_user:
-        expiration = datetime.utcnow() + timedelta(hours=1)
+        expiration = datetime.utcnow() + timedelta(hours=12)
         payload = {
             'sub': new_user.id,
             'username': new_user.username,
@@ -41,6 +45,7 @@ def create_user(userInfo):
         }
         
         token = jwt.encode(payload, app.config['SECRET_KEY'], algorithm='HS256')
+        print(token)
         
         return jsonify({'token': token})
     else:
@@ -48,10 +53,13 @@ def create_user(userInfo):
     
 
 @app.route('/login', methods=["POST"])
-def login(userInfo):
+def login():
+    data = request.get_json()
+    username = data.get("username")
+    password = data.get("password")
     user = User.authenticate(
-        username=userInfo.username,
-        password=userInfo.password
+        username = username,
+        password = password
     )
     if user:
         expiration = datetime.utcnow() + timedelta(hours=1)
